@@ -21,8 +21,8 @@ func itemHandler(feed *feeder.Feed, ch *feeder.Channel, newitems []*feeder.Item)
 	for _,item := range items{
 		id := getItemQuestionId(item)
 		var qs Questions
-		question(qs, id)
-		fmt.Printf("title:%s\nbody:%s\n", qs.Items[0].title, qs.Items[0].Body)
+		question(&qs, id)
+		fmt.Printf("title:%s\nbody:%s\n", qs.Items[0].Title, qs.Items[0].Body)
 	}
 }
 

@@ -18,17 +18,16 @@ type Questions struct {
 type Question struct {
 	Question_id int64
 	Body string
-	title string
+	Title string
 	Accepted_answer_id int64
 }
 
-func question(q Questions, id string) (error){
+func question(q *Questions, id string) (error){
 	content, err := httpRequest(fmt.Sprintf(questions_api_url, id))
 	if err!=nil{
 		return err
 	}
-	var questions Questions
-	err =json.Unmarshal(content, &questions)
+	err =json.Unmarshal(content, q)
 	if err!=nil{
 		return err
 	}
