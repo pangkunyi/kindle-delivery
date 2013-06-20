@@ -52,7 +52,7 @@ func itemHandler(feed *feeder.Feed, ch *feeder.Channel, newitems []*feeder.Item)
 }
 
 func write(content string){
-	err := ioutil.WriteFile(os.Getenv("HOME")+"/stackoverflow.html", []byte(fmt.Sprintf(template,content)), os.ModePerm)
+	err := ioutil.WriteFile("/tmp/stackoverflow.html", []byte(fmt.Sprintf(template,content)), os.ModePerm)
 	if err != nil {
 		fmt.Printf("fail to write file, cause by: %v\n", err)
 		return
