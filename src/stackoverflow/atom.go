@@ -7,6 +7,7 @@ import(
 	"io/ioutil"
 	"os"
 	"fmt"
+	"time"
 )
 
 var items []*feeder.Item
@@ -16,7 +17,7 @@ var idPrefixLen=len("http://stackoverflow.com/questions/")
 var template=`
 <html>
 <head>
-	<title>stackoverflow</title>
+	<title>stackoverflow-%s</title>
 	<style>
 		pre{
 			 background-color: #eeeeee;
@@ -52,7 +53,8 @@ func itemHandler(feed *feeder.Feed, ch *feeder.Channel, newitems []*feeder.Item)
 }
 
 func write(content string){
-	err := ioutil.WriteFile("/tmp/stackoverflow.html", []byte(fmt.Sprintf(template,content)), os.ModePerm)
+	timeString :=time.Now().Format("2006-01-02")
+	err := ioutil.WriteFile("/tmp/stackoverflow.html", []byte(fmt.Sprintf(template, timeString, content)), os.ModePerm)
 	if err != nil {
 		fmt.Printf("fail to write file, cause by: %v\n", err)
 		return

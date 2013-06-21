@@ -37,13 +37,13 @@ func send2kindle(){
 	    fmt.Printf("no stackoverflow mobi file create: %s", filename)
 	    panic(err)
 	}
-	
+
 	body, err :=ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
 
-	err = mail.Send(body, "stackoverflow", ".mobi")
+	err = mail.Send(body, "stackoverflow.mobi")
 	if err != nil {
 		panic(err)
 	}
