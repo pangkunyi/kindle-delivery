@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	DB_FILE string = os.Getenv("HOME")+"/stackoverflow.db"
+	DB_FILE string = os.Getenv("HOME")+"/.kindle-delivery/stackoverflow.db"
 )
 
 func init(){
