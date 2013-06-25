@@ -45,6 +45,7 @@ func Update() error{
 	}
 
 	var content string
+	count := 0
 	for _, entry := range feed.Entries {
 		id := getItemQuestionId(entry.Id)
 		var qs Questions
@@ -67,11 +68,15 @@ func Update() error{
 				return errors.New("failure to request stackoverflow answers api")
 			}
 			content=content+fmt.Sprintf(questionTemplate, qs.Items[0].Title, qs.Items[0].Body, ans.Items[0].Body)
+			count = count + 1
 			err = db.SaveEntry(feed.Title, feed.Id, &entry)
 			if err != nil{
 				return err
 			}
 		}
+	}
+	if count < 1 {
+		return errors.New("no new feed found")
 	}
 	return write(content)
 }

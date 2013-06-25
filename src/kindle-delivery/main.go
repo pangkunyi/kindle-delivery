@@ -8,7 +8,6 @@ import(
 	"io/ioutil"
 	"bytes"
 	"net/http"
-	"errors"
 	sof "stackoverflow"
 )
 func main(){
@@ -21,23 +20,26 @@ func main(){
 func send2kindleHandler(w http.ResponseWriter, r *http.Request){
 	err := send2kindle()
 	if err != nil {
-		fmt.Fprintf(w,"error:%s", err.Error())
+		fmt.Printf("error:%s\n", err.Error())
+		fmt.Fprintf(w,"error:%s\n", err.Error())
+	}else{
+		fmt.Fprintf(w,"success\n")
 	}
-	fmt.Fprintf(w,"success")
 }
 func send2kindle() error{
 	filename :="/tmp/stackoverflow.html"
+	os.Remove(filename)
 	err:= sof.Update()
 	if err!=nil{
 		return err
 	}
-	panic(errors.New("test error"))
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		fmt.Printf("no stackoverflow html file create: %s", filename)
 		return err
 	}
-	kindlegen()
 	filename ="/tmp/stackoverflow.mobi"
+	os.Remove(filename)
+	kindlegen()
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		fmt.Printf("no stackoverflow mobi file create: %s", filename)
 		return err
