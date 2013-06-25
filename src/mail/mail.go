@@ -6,7 +6,6 @@ import (
 	"time"
 	message "github.com/sloonz/go-mime-message"
 	"bytes"
-	"fmt"
 )
 
 func Send(attachment []byte, filename string, suffix string) error{
@@ -28,7 +27,6 @@ func Send(attachment []byte, filename string, suffix string) error{
 	if err!=nil {
 		return err
 	}
-//	fmt.Println(string(body))
 
 	auth :=smtp.PlainAuth("", "connect0829@qq.com", "password", "smtp.qq.com")
 	err = smtp.SendMail("smtp.qq.com:25", auth, from, to, body)
