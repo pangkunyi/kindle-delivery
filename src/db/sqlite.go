@@ -11,6 +11,15 @@ var (
 	DB_FILE string = os.Getenv("HOME")+"/stackoverflow.db"
 )
 
+func init(){
+	if _, err := os.Stat(DB_FILE); os.IsNotExist(err) {
+		err := InitDatabase()
+		if err != nil{
+			panic(err)
+		}
+	}
+}
+
 func InitDatabase() error{
 	os.Remove(DB_FILE)
 	db, err := sql.Open("sqlite3", DB_FILE)
