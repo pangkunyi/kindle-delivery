@@ -1,27 +1,18 @@
 package main
 
-import(
-	"os/exec"
-	"bytes"
+import (
+	"database/sql"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
+	"os"
+	sof "stackoverflow"
 )
-func main(){
-	err :=kindlegen()
-	if err!=nil{
-		panic(err)
-	}
-}
 
-func kindlegen() error{
-	cmd := exec.Command("kindlegen", "/tmp/stackoverflow.html", "-o", "stackoverflow.mobi")
-	var in bytes.Buffer
-	cmd.Stdin = &in
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	fmt.Println(string(out.Bytes()))
-	if err != nil {
-		return err
-	}
-	return nil
+func main() {
+	var e sof.Entry
+	err :=GetEntry(`http://stackexchange.com/feeds/tagsets/88069/golang?sort=active`, `http://stackoverflow.com/questions/17265463/how-do-i-convert-a-database-row-into-a-struct-in-go12`, &e)
+	if err!=nil {
+		panic(err)
+}
+	fmt.Println(e)
 }
