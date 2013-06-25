@@ -4,6 +4,7 @@ package stackoverflow
 import(
 	"strings"
 	"io/ioutil"
+	"time"
 	"errors"
 	"os"
 	"fmt"
@@ -19,7 +20,7 @@ var (
 	template=`
 <html>
 <head>
-	<title>stackoverflow</title>
+	<title>stackoverflow-%s</title>
 	<style>
 		pre{
 			 background-color: #eeeeee;
@@ -82,7 +83,7 @@ func Update() error{
 }
 
 func write(content string) error{
-	return ioutil.WriteFile(tempFile, []byte(fmt.Sprintf(template,content)), os.ModePerm)
+	return ioutil.WriteFile(tempFile, []byte(fmt.Sprintf(template,time.Now().Format("2006-01-02"), content)), os.ModePerm)
 }
 
 func getItemQuestionId(entryId string) string{
