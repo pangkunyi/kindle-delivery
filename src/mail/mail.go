@@ -3,16 +3,44 @@ package mail
 import (
 	"net/smtp"
 	"io/ioutil"
-	"time"
 	message "github.com/sloonz/go-mime-message"
 	"bytes"
+	"os"
+	"strings"
+	"fmt"
 )
 
-func Send(attachment []byte, filename string, suffix string) error{
-	from := "connect0829@qq.com"
-	to := []string{"pangkunyi_72@kindle.com"}
-	timeString :=time.Now().Format("-2006-01-02")
-	filename=filename+timeString+suffix
+type Account struct{
+	from string
+	to string
+	username string
+	password string
+	smtpHost string
+	port string 
+}
+
+func (this *Account) load(){
+	data, err := ioutil.ReadFile(os.Getenv("HOME")+"/.kindle-delivery/account.conf")
+	if err !=nil{
+		panic(err)
+	}
+	fields :=strings.Fields(string(data))
+	this.from=fields[0]
+	this.to=fields[1]
+	this.username=fields[2]
+	this.password=fields[3]
+	this.smtpHost=fields[4]
+	this.port=fields[5]
+	fmt.Printf("%v", this)
+}
+
+var acc Account
+func init(){
+	acc.load()
+}
+func Send(attachment []byte, filename string) error{
+	from := acc.from
+	to := []string{acc.to}
 	subject :="convert file "+filename
 
 	msg :=message.NewMultipartMessage("mixed","")
@@ -28,8 +56,8 @@ func Send(attachment []byte, filename string, suffix string) error{
 		return err
 	}
 
-	auth :=smtp.PlainAuth("", "connect0829@qq.com", "password", "smtp.qq.com")
-	err = smtp.SendMail("smtp.qq.com:25", auth, from, to, body)
+	auth :=smtp.PlainAuth("", acc.username, acc.password, acc.smtpHost)
+	err = smtp.SendMail(acc.smtpHost+":"+acc.port, auth, from, to, body)
 	return err
 }
 

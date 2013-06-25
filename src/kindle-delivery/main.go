@@ -48,7 +48,7 @@ func send2kindle() error{
 		return err
 	}
 
-	err = mail.Send(body, "stackoverflow", ".mobi")
+	err = mail.Send(body, "stackoverflow.mobi")
 	if err != nil {
 		return err
 	}
