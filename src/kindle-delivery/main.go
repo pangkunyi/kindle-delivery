@@ -8,7 +8,8 @@ import(
 	"io/ioutil"
 	"bytes"
 	"net/http"
-	sof "stackoverflow"
+//	sof "stackoverflow"
+	"ifeng"
 )
 func main(){
 	http.HandleFunc("/send2kindle", send2kindleHandler)
@@ -18,7 +19,14 @@ func main(){
 	}
 }
 func send2kindleHandler(w http.ResponseWriter, r *http.Request){
-	err := send2kindle()
+//	err := send2kindle("/tmp/", "stackoverflow.html", "stackoverflow.mobi", func()error{return sof.Update()})
+//	if err != nil {
+//		fmt.Printf("error:%s\n", err.Error())
+//		fmt.Fprintf(w,"error:%s\n", err.Error())
+//	}else{
+//		fmt.Fprintf(w,"success\n")
+//	}
+	err := send2kindle("/tmp/", "ifeng-kaijuanbafenzhong.html", "ifeng-kaijuanbafenzhong.mobi", func()error{return ifeng.UpdateKJBFZ()})
 	if err != nil {
 		fmt.Printf("error:%s\n", err.Error())
 		fmt.Fprintf(w,"error:%s\n", err.Error())
@@ -26,10 +34,10 @@ func send2kindleHandler(w http.ResponseWriter, r *http.Request){
 		fmt.Fprintf(w,"success\n")
 	}
 }
-func send2kindle() error{
-	filename :="/tmp/stackoverflow.html"
+func send2kindle(dir, html, mobi string, update func() error) error{
+	filename :=dir+html
 	os.Remove(filename)
-	err:= sof.Update()
+	err:= update()
 	if err!=nil{
 		return err
 	}
@@ -37,9 +45,9 @@ func send2kindle() error{
 		fmt.Printf("no stackoverflow html file create: %s", filename)
 		return err
 	}
-	filename ="/tmp/stackoverflow.mobi"
+	filename =dir+mobi
 	os.Remove(filename)
-	kindlegen()
+	kindlegen(dir, html, mobi)
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		fmt.Printf("no stackoverflow mobi file create: %s", filename)
 		return err
@@ -50,15 +58,15 @@ func send2kindle() error{
 		return err
 	}
 
-	err = mail.Send(body, "stackoverflow.mobi")
+	err = mail.Send(body, mobi)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func kindlegen(){
-	cmd := exec.Command("kindlegen", "/tmp/stackoverflow.html", "-o", "stackoverflow.mobi")
+func kindlegen(dir, html, mobi string){
+	cmd := exec.Command("kindlegen", dir+html, "-o", mobi)
 	var in bytes.Buffer
 	cmd.Stdin = &in
 	var out bytes.Buffer
