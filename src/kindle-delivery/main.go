@@ -26,7 +26,7 @@ func send2kindleHandler(w http.ResponseWriter, r *http.Request){
 //	}else{
 //		fmt.Fprintf(w,"success\n")
 //	}
-	err := send2kindle("/tmp/", "ifeng-kaijuanbafenzhong.html", "ifeng-kaijuanbafenzhong.mobi", func()error{return ifeng.UpdateKJBFZ()})
+	err := send2kindle("/tmp/", "ifeng-kaijuanbafenzhong.html", "ifeng-kaijuanbafenzhong.mobi", "zh", func()error{return ifeng.UpdateKJBFZ()})
 	if err != nil {
 		fmt.Printf("error:%s\n", err.Error())
 		fmt.Fprintf(w,"error:%s\n", err.Error())
@@ -34,7 +34,8 @@ func send2kindleHandler(w http.ResponseWriter, r *http.Request){
 		fmt.Fprintf(w,"success\n")
 	}
 }
-func send2kindle(dir, html, mobi string, update func() error) error{
+
+func send2kindle(dir, html, mobi, locale string, update func() error) error{
 	filename :=dir+html
 	os.Remove(filename)
 	err:= update()
@@ -47,7 +48,7 @@ func send2kindle(dir, html, mobi string, update func() error) error{
 	}
 	filename =dir+mobi
 	os.Remove(filename)
-	kindlegen(dir, html, mobi)
+	kindlegen(dir, html, mobi, locale)
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		fmt.Printf("no stackoverflow mobi file create: %s", filename)
 		return err
@@ -57,7 +58,9 @@ func send2kindle(dir, html, mobi string, update func() error) error{
 	if err != nil {
 		return err
 	}
-
+	if true {
+		return nil
+	}
 	err = mail.Send(body, mobi)
 	if err != nil {
 		return err
@@ -65,8 +68,13 @@ func send2kindle(dir, html, mobi string, update func() error) error{
 	return nil
 }
 
-func kindlegen(dir, html, mobi string){
-	cmd := exec.Command("kindlegen", dir+html, "-o", mobi)
+func kindlegen(dir, html, mobi, locale string){
+	var cmd *exec.Cmd
+	if locale != "" {
+		cmd = exec.Command("kindlegen", dir+html, "-o", mobi)
+	}else{
+		cmd = exec.Command("kindlegen", dir+html, "-o", mobi, "-locale", locale)
+	}
 	var in bytes.Buffer
 	cmd.Stdin = &in
 	var out bytes.Buffer
