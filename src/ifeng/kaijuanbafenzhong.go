@@ -91,7 +91,7 @@ func UpdateKJBFZ() error{
 	}
 	var content string
 	for _,entry := range feed.Entries {
-		content += fmt.Sprintf(temp_article, entry.Title, entry.Summary)
+		content = fmt.Sprintf(temp_article, entry.Title, entry.Summary) + content
 	}
 	return write(content)
 }
