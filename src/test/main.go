@@ -1,12 +1,16 @@
 package main
 
 import (
-	"zhihu"
+	"parser"
+)
+
+const (
+	file = "/tmp/zhihu.html"
 )
 
 func main() {
 	println("testing...")
-	err := zhihu.UpdateZhihu()
+	err := html.EncodeImg(file)
 	if err != nil {
 		panic(err)
 	}

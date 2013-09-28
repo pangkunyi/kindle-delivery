@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	htmlParser "parser"
 	sof "stackoverflow"
 	"zhihu"
 )
@@ -53,6 +54,10 @@ func send2kindle(dir, html, mobi, locale string, update func() error) error {
 	}
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		fmt.Printf("no html file create: %s", filename)
+		return err
+	}
+	err = htmlParser.EncodeImg(filename)
+	if err != nil {
 		return err
 	}
 	filename = dir + mobi
