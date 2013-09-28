@@ -1,11 +1,14 @@
 package main
 
 import (
-	"ifeng"
+	"zhihu"
 )
 
 func main() {
 	println("testing...")
-	ifeng.UpdateKJBFZ()
+	err := zhihu.UpdateZhihu()
+	if err != nil {
+		panic(err)
+	}
 	println("done.")
 }
