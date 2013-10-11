@@ -3,6 +3,7 @@ package zhihu
 import (
 	"atom"
 	"db"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -34,6 +35,10 @@ const (
 `
 )
 
+var (
+	noAnswerErr = errors.New("no answer error")
+)
+
 type Article struct {
 	Url     string
 	Title   string
@@ -60,6 +65,7 @@ func login() (cookie string, err error) {
 	for _, c := range cookies {
 		cookie += c[:strings.Index(c, ";")+2]
 	}
+	fmt.Println("login zhihu ok.")
 	return
 }
 
@@ -69,7 +75,7 @@ func setHeader(req *http.Request) {
 	req.Header.Add("Accept", "*/*")
 }
 
-func getUrlContent(cookie, url string) (content string, err error) {
+func getUrlContent(cookie, url string) (content []byte, err error) {
 	client := http.DefaultTransport
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -82,16 +88,13 @@ func getUrlContent(cookie, url string) (content string, err error) {
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	content = string(body)
+	content, err = ioutil.ReadAll(resp.Body)
 	return
 }
 
 func load2Feed(cookie string) (feed *atom.Feed, err error) {
-	content, err := getUrlContent(cookie, homePage)
+	data, err := getUrlContent(cookie, homePage)
+	content := string(data)
 	if err != nil {
 		return
 	}
@@ -102,7 +105,13 @@ func load2Feed(cookie string) (feed *atom.Feed, err error) {
 		if url, content, ok = extract(content, `question_link" target="_blank" href="`, `"`); !ok {
 			break
 		}
-		url = "http://www.zhihu.com" + url
+		if strings.HasPrefix(url, "http://zhuanlan") {
+			if url, content, ok = extract(content, `post-link" target="_blank" href="`, `"`); !ok {
+				break
+			}
+		} else {
+			url = "http://www.zhihu.com" + url
+		}
 		fmt.Println("got url:", url)
 		if title, content, ok = extract(content, `>`, `</a>`); !ok {
 			break
@@ -118,6 +127,9 @@ func load2Feed(cookie string) (feed *atom.Feed, err error) {
 
 		article := &Article{Url: url}
 		err = article.parseArticle(cookie)
+		if err == noAnswerErr {
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -154,12 +166,49 @@ func write(content string) error {
 	return ioutil.WriteFile(temp_file, []byte(fmt.Sprintf(template, time.Now().Format("2006-01-02"), content)), os.ModePerm)
 }
 
-func (this *Article) parseArticle(cookie string) error {
-	content, err := getUrlContent(cookie, this.Url)
+type Author struct {
+	Name string `json:"name"`
+}
+
+type ZhanLanPost struct {
+	Author     Author `json:"author"`
+	TitleImage string `json:"titleImage"`
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+}
+
+func (this *Article) parseZhuanLanArticle(cookie string) error {
+	entries := strings.SplitN(this.Url, "/", 5)
+	url := "http://zhuanlan.zhihu.com/api/columns/" + entries[3] + "/posts/" + entries[4]
+	data, err := getUrlContent(cookie, url)
 	if err != nil {
 		return err
 	}
-	fmt.Println("got content:", content)
+
+	var post ZhanLanPost
+	err = json.Unmarshal(data, &post)
+	if err != nil {
+		return err
+	}
+	this.Title = post.Title
+	this.Content = fmt.Sprintf(`<h4>by %s</h4><img src="%s"><br/>%s`, post.Author.Name, post.TitleImage, post.Content)
+	return nil
+}
+
+func (this *Article) parseArticle(cookie string) error {
+	if strings.HasPrefix(this.Url, "http://zhuanlan") {
+		return this.parseZhuanLanArticle(cookie)
+	} else {
+		return this.parseQuestionArticle(cookie)
+	}
+}
+
+func (this *Article) parseQuestionArticle(cookie string) error {
+	data, err := getUrlContent(cookie, this.Url)
+	content := string(data)
+	if err != nil {
+		return err
+	}
 	var ok bool
 	var detail string
 	if detail, content, ok = extract(content, `/question/detail">`, `</div>
@@ -173,10 +222,10 @@ func (this *Article) parseArticle(cookie string) error {
 	}
 	var people string
 	if people, content, ok = extract(content, `" href="/people/`, `>`); !ok {
-		return errors.New("error article when parse people 1")
+		return noAnswerErr
 	}
 	if people, content, ok = extract(content, ``, `</a>`); !ok {
-		return errors.New("error article when parse people 2")
+		return errors.New("error article when parse people")
 	}
 	this.Content = fmt.Sprintf("%s<h4>%s</h4>", detail, people)
 	var answer string
